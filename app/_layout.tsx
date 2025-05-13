@@ -10,6 +10,8 @@ import React, { useState, useEffect } from "react";
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/firebaseConfig";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -17,22 +19,22 @@ export default function RootLayout() {
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Trạng thái đăng nhập
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Kiểm tra trạng thái đăng nhập (ví dụ: từ AsyncStorage hoặc Firebase Auth)
-    const checkLoginStatus = async () => {
-      // Thay thế logic này bằng kiểm tra thực tế
-      const loggedIn = false; // Giả sử người dùng chưa đăng nhập
-      setIsLoggedIn(loggedIn);
-    };
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsLoggedIn(!!user);
+      setLoading(false);
+    });
 
-    checkLoginStatus();
+    return unsubscribe; 
   }, []);
 
-  if (!loaded) {
+  if (loading) {
     return null;
   }
+
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>

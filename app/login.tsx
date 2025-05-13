@@ -9,26 +9,22 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
+import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
 
-
-type RootStackParamList = {
-  login: undefined;
-  home: undefined;
-};
 export default function LoginScreen() {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const router = useRouter();
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(""); // State để lưu thông báo lỗi
+  const [errorMessage, setErrorMessage] = useState("");
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
   const handleLogin = async () => {
-    setErrorMessage(""); // Xóa thông báo lỗi trước khi kiểm tra
+    setErrorMessage("");
 
     if (!phone || !password) {
       setErrorMessage("Please enter both phone and password.");
@@ -48,13 +44,19 @@ export default function LoginScreen() {
       console.log("Query result:", querySnapshot.docs);
 
       if (!querySnapshot.empty) {
-        navigation.navigate("home");
+        const user = querySnapshot.docs[0].data(); // Lấy thông tin người dùng
+        console.log("User data:", user);
+
+        // Lưu thông tin người dùng vào AsyncStorage
+        await AsyncStorage.setItem("user", JSON.stringify(user));
+
+        router.replace("/(tabs)"); // Điều hướng đến màn hình chính
       } else {
         setErrorMessage("Invalid phone or password.");
       }
     } catch (error) {
       console.error("Error logging in:", error);
-      setErrorMessage("An error occurred while logging in." + error);
+      setErrorMessage("An error occurred while logging in.");
     }
   };
 
